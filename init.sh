@@ -88,6 +88,35 @@ else
 fi
 
 # -------------------------------------------------------------------------
+# 3b. GitHub CLI (`gh`) — needed for cloning private repos (claude-memory,
+#     project repos). Install via the official tarball into ~/.local/bin
+#     (no sudo). `gh auth login` is still a one-time interactive step the
+#     operator runs after init.sh finishes.
+# -------------------------------------------------------------------------
+if ! have gh && [[ ! -x "$HOME/.local/bin/gh" ]]; then
+  log "installing GitHub CLI (gh) — no sudo"
+  GH_VERSION="2.62.0"  # bump when stale; check https://github.com/cli/cli/releases
+  ARCH="$(uname -m)"
+  case "$ARCH" in
+    x86_64)  GH_ARCH="amd64" ;;
+    aarch64|arm64) GH_ARCH="arm64" ;;
+    *)       log "WARN: unknown arch $ARCH for gh; skipping" ; GH_ARCH="" ;;
+  esac
+  if [[ -n "$GH_ARCH" ]]; then
+    mkdir -p "$HOME/.local/bin" "$HOME/.local/share/man/man1"
+    GH_TGZ="/tmp/gh-${GH_VERSION}.tgz"
+    curl -sL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${GH_ARCH}.tar.gz" -o "$GH_TGZ"
+    tar -xzf "$GH_TGZ" -C /tmp/
+    cp "/tmp/gh_${GH_VERSION}_linux_${GH_ARCH}/bin/gh" "$HOME/.local/bin/gh"
+    chmod +x "$HOME/.local/bin/gh"
+    rm -rf "$GH_TGZ" "/tmp/gh_${GH_VERSION}_linux_${GH_ARCH}"
+    log "gh installed: $($HOME/.local/bin/gh --version 2>/dev/null | head -1)"
+  fi
+else
+  log "gh already available: $(command -v gh 2>/dev/null || echo $HOME/.local/bin/gh)"
+fi
+
+# -------------------------------------------------------------------------
 # 4. Lay down ~/bot-swarm/ from vendor/ payload
 # -------------------------------------------------------------------------
 if [[ ! -d "$SWARM_HOME" ]]; then
@@ -223,16 +252,22 @@ Next steps:
   1. (ONCE, requires sudo) Make services survive logout:
        sudo loginctl enable-linger $SWARM_USER
 
-  2. Start the worker socket daemon:
+  2. Authenticate gh (one-time, interactive) so private repo clones work:
+       ~/.local/bin/gh auth login
+     Then:
+       gh repo clone tim-po1/claude-memory ~/claude-memory
+       ~/claude-memory/scripts/install-cron.sh
+
+  3. Start the worker socket daemon:
        systemctl --user enable --now bot-swarm-worker.service
 
-  3. Bootstrap a coordinator Claude Code session:
+  4. Bootstrap a coordinator Claude Code session:
        tmux new -s coord
        cd $SWARM_HOME${SWARM_PROJECT:+ # or cd $HOME/$SWARM_PROJECT}
        claude
        # First-run auth on interactive prompt.
 
-  4. The seeded auto-memory at $MEMORY_DIR points the new coord at how
+  5. The seeded auto-memory at $MEMORY_DIR points the new coord at how
      this swarm works — peer_send/nudge protocol, dispatch patterns,
      known quirks. Read MEMORY.md first.
 
