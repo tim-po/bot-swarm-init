@@ -199,6 +199,14 @@ fi
 if have systemctl; then
   export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
   systemctl --user daemon-reload || true
+  # Auto-start the worker daemon. Idempotent: enable--now is a no-op if
+  # already running. Persistence across logout still requires loginctl
+  # enable-linger — surfaced in the epilogue.
+  if systemctl --user enable --now bot-swarm-worker.service >/dev/null 2>&1; then
+    log "bot-swarm-worker.service started"
+  else
+    log "WARN: bot-swarm-worker.service did not start; run 'systemctl --user enable --now bot-swarm-worker.service' manually"
+  fi
 fi
 
 # -------------------------------------------------------------------------
@@ -267,28 +275,29 @@ cat <<EOF
 
 $LOG_PREFIX install complete.
 
-Next steps:
-  1. (ONCE, requires sudo) Make services survive logout:
+The worker socket daemon has been started. Two interactive steps remain
+(both one-time per host, both security-required so init.sh cannot do
+them for you):
+
+  1. Make services survive logout (sudo password):
        sudo loginctl enable-linger $SWARM_USER
-
-  2. Authenticate gh (one-time, interactive) so private repo clones work:
+  2. Authenticate gh (interactive token / browser flow):
        ~/.local/bin/gh auth login
-     Then:
-       gh repo clone tim-po1/claude-memory ~/claude-memory
-       ~/claude-memory/scripts/install-cron.sh
 
-  3. Start the worker socket daemon:
-       systemctl --user enable --now bot-swarm-worker.service
+  Paste-able as one line:
+     sudo loginctl enable-linger $SWARM_USER && ~/.local/bin/gh auth login
 
-  4. Bootstrap a coordinator Claude Code session:
+After those, start a Claude Code session and the /swarm-up skill finishes
+everything else (clones claude-memory, installs the daily reflector cron,
+loads identity + project context):
+
        tmux new -s coord
        cd $SWARM_HOME${SWARM_PROJECT:+ # or cd $HOME/$SWARM_PROJECT}
        claude
-       # First-run auth on interactive prompt.
+       # In the prompt: /swarm-up
 
-  5. The seeded auto-memory at $MEMORY_DIR points the new coord at how
-     this swarm works — peer_send/nudge protocol, dispatch patterns,
-     known quirks. Read MEMORY.md first.
+The seeded auto-memory at $MEMORY_DIR points the new coord at the swarm
+protocol — read MEMORY.md if you want background.
 
 If Telegram is reachable directly on this host, also enable:
        systemctl --user enable --now planlink-tg-poller.service
