@@ -140,18 +140,25 @@ fi
 # -------------------------------------------------------------------------
 # 4. Lay down ~/bot-swarm/ from vendor/ payload
 # -------------------------------------------------------------------------
-if [[ ! -d "$SWARM_HOME" ]]; then
-  log "creating $SWARM_HOME from vendored payload"
-  mkdir -p "$SWARM_HOME"
+# Idempotency check is tighter than "$SWARM_HOME exists": check for the
+# `worker/` subdir specifically. Otherwise a previously-failed run that
+# created an empty $SWARM_HOME tricks us into skipping extraction.
+if [[ ! -d "$SWARM_HOME/worker" ]]; then
+  # Validate vendor payload BEFORE mkdir'ing — avoid leaving half-baked
+  # state if the payload is missing.
   if [[ -f "$INIT_DIR/vendor/bot-swarm.tar.gz" ]]; then
+    log "creating $SWARM_HOME from vendored tarball"
+    mkdir -p "$SWARM_HOME"
     tar -xzf "$INIT_DIR/vendor/bot-swarm.tar.gz" -C "$SWARM_HOME" --strip-components=1
   elif [[ -d "$INIT_DIR/vendor/bot-swarm" ]]; then
+    log "creating $SWARM_HOME from vendored tree"
+    mkdir -p "$SWARM_HOME"
     cp -r "$INIT_DIR/vendor/bot-swarm/." "$SWARM_HOME/"
   else
     die "no vendored bot-swarm payload at $INIT_DIR/vendor/"
   fi
 else
-  log "$SWARM_HOME already exists — skipping vendor extraction (re-run init.sh after manual rsync if updating)"
+  log "$SWARM_HOME/worker exists — skipping vendor extraction (re-run after manual rsync if updating)"
 fi
 
 # Python venv for the worker
