@@ -161,6 +161,25 @@ else
 fi
 
 # -------------------------------------------------------------------------
+# 5b. User-level Claude Code skills (e.g. /swarm-up)
+# -------------------------------------------------------------------------
+SKILLS_DIR="$HOME/.claude/skills"
+if [[ -d "$INIT_DIR/skills" ]]; then
+  mkdir -p "$SKILLS_DIR"
+  for skill_dir in "$INIT_DIR/skills"/*/; do
+    [[ -d "$skill_dir" ]] || continue
+    skill_name="$(basename "$skill_dir")"
+    target="$SKILLS_DIR/$skill_name"
+    if [[ ! -d "$target" ]]; then
+      log "installing skill /$skill_name → $target"
+      cp -r "$skill_dir" "$target"
+    else
+      log "skill /$skill_name already installed — skipping (delete to refresh)"
+    fi
+  done
+fi
+
+# -------------------------------------------------------------------------
 # 6. systemd-user units
 # -------------------------------------------------------------------------
 SYSTEMD_DIR="$HOME/.config/systemd/user"
