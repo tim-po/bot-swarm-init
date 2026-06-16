@@ -38,7 +38,7 @@ If `~/bot-swarm/` doesn't exist, this is a fresh host. Do the full install:
 # Clone the public init repo to /tmp and run it. init.sh installs nvm+Node,
 # uv, Claude Code, gh (via tarball), the worker daemon, seed memory, systemd
 # unit files, and the /swarm-up skill itself.
-git clone https://github.com/tim-po1/bot-swarm-init.git /tmp/bot-swarm-init
+git clone https://github.com/tim-po/bot-swarm-init.git /tmp/bot-swarm-init
 cd /tmp/bot-swarm-init
 ./init.sh
 ```
@@ -68,7 +68,7 @@ else
     echo "Then re-invoke /swarm-up. Stopping here."
     exit 0
   fi
-  gh repo clone tim-po1/claude-memory "$HOME/claude-memory"
+  gh repo clone tim-po/claude-memory "$HOME/claude-memory"
   "$HOME/claude-memory/scripts/install-cron.sh"
 fi
 ```
@@ -168,7 +168,7 @@ If yes, use the `spawn_session` action via the worker socket. Pass the standard 
 
 ## Failure modes (handle gracefully — stop, don't loop)
 
-- `git clone https://github.com/tim-po1/bot-swarm-init.git` fails (no network, repo gone): report the error verbatim.
+- `git clone https://github.com/tim-po/bot-swarm-init.git` fails (no network, repo gone): report the error verbatim.
 - `init.sh` exits non-zero: tail its log to user, stop.
 - `gh auth status` fails: tell user `gh auth login` is needed, stop.
 - Worker socket exists but the daemon doesn't respond: report and offer `systemctl --user restart`.

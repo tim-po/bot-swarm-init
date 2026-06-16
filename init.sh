@@ -40,7 +40,7 @@ if [[ -z "$INIT_DIR" || ! -f "$INIT_DIR/init.sh" || ! -d "$INIT_DIR/vendor" ]]; 
   CLONE_DIR="${SWARM_INIT_CLONE:-$HOME/.bot-swarm-init}"
   if [[ ! -d "$CLONE_DIR/.git" ]]; then
     echo "[swarm-init] curl|bash mode — cloning bot-swarm-init to $CLONE_DIR"
-    git clone --depth=1 https://github.com/tim-po1/bot-swarm-init.git "$CLONE_DIR"
+    git clone --depth=1 https://github.com/tim-po/bot-swarm-init.git "$CLONE_DIR"
   else
     echo "[swarm-init] refreshing existing $CLONE_DIR"
     ( cd "$CLONE_DIR" && git pull --rebase --autostash --quiet ) || true
