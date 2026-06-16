@@ -1,19 +1,40 @@
 # bot-swarm-init
 
-Bootstrap a fresh Ubuntu/Debian host into a working bot-swarm coordinator. One script, one sudo command at the end, you're running.
+Bootstrap a fresh Ubuntu/Debian host into a working bot-swarm coordinator with a Claude Code session ready to dispatch.
 
-## Quick start
-
-On the target host, as the unprivileged user that will own the swarm:
+## Quick start — one curl
 
 ```bash
-# Option A — clone the repo
-git clone https://your-host/bot-swarm-init.git
-cd bot-swarm-init
-./init.sh
+ssh your-vps
+curl -sL https://raw.githubusercontent.com/tim-po/bot-swarm-init/main/swarm-up.sh | bash
+```
 
-# Option B — one-shot pipe
-curl -sL https://your-host/bot-swarm-init/init.sh | bash
+`swarm-up.sh` runs `init.sh` (installs nvm/Node, uv, Claude Code, gh, the worker), prompts you for two interactive things mid-script:
+
+- **sudo password** for `loginctl enable-linger` (so services survive logout)
+- **gh auth** to clone the private `claude-memory` repo
+
+…then clones memory, starts the worker daemon, and launches a detached `tmux` session named `coord` running Claude Code. The script ends by telling you to:
+
+```bash
+tmux attach -t coord
+# inside Claude, type:
+/swarm-up
+```
+
+`/swarm-up` is the in-session skill (installed by init.sh) that verifies state, refreshes memory, and loads project context.
+
+## Lower-level entry points
+
+If you want host bootstrap WITHOUT auto-launching a coord session:
+
+```bash
+# Option A — clone + run
+git clone https://github.com/tim-po/bot-swarm-init.git
+cd bot-swarm-init && ./init.sh
+
+# Option B — one-shot init pipe (no auto-session, no memory clone)
+curl -sL https://raw.githubusercontent.com/tim-po/bot-swarm-init/main/init.sh | bash
 ```
 
 Then follow the printed instructions. The whole flow:
