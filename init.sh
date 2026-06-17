@@ -189,6 +189,21 @@ else
 fi
 
 # -------------------------------------------------------------------------
+# 5a. CLI helpers (e.g. swarm-add-tg-bot)
+# -------------------------------------------------------------------------
+if [[ -d "$INIT_DIR/scripts" ]]; then
+  mkdir -p "$HOME/bin"
+  for helper in "$INIT_DIR/scripts"/*.sh; do
+    [[ -e "$helper" ]] || continue
+    name="$(basename "$helper" .sh)"
+    target="$HOME/bin/$name"
+    cp "$helper" "$target"
+    chmod +x "$target"
+    log "installed helper: $name → $target"
+  done
+fi
+
+# -------------------------------------------------------------------------
 # 5b. User-level Claude Code skills (e.g. /swarm-up)
 # -------------------------------------------------------------------------
 SKILLS_DIR="$HOME/.claude/skills"

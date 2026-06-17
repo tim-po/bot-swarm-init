@@ -26,6 +26,25 @@ tmux attach -t coord
 
 ## Lower-level entry points
 
+## Adding a Telegram bot per project
+
+After `init.sh` is done, each project gets its own bot (one bot = one project; sharing tokens across projects races on `getUpdates`).
+
+```bash
+# 1. Make a bot via @BotFather → /newbot → grab the token.
+# 2. Wire it to a registered project:
+~/bin/swarm-add-tg-bot <slug> <bot_token>
+
+# Optional 3rd arg: a specific coord SID to route to.
+# If omitted, the helper picks the most-recently-active coord in the slug.
+```
+
+The helper creates `~/bot-swarm/data/<slug>/telegram/{bridge.py,.env,bridge.log}`, writes a systemd-user unit `bot-swarm-tg-bridge-<slug>.service`, enables and starts it, verifies the token with Telegram's `getMe`, and reports the bot's username. Auto-detects the `~/bin/with-tg-proxy.sh` wrapper (installed by `init.sh` when `TG_PROXY_VIA_XRAY=1`) for hosts where the ISP blocks Telegram directly.
+
+Idempotent — re-running with the same slug refreshes the `.env` and the unit, so it's also how you rotate a token.
+
+## Lower-level entry points
+
 If you want host bootstrap WITHOUT auto-launching a coord session:
 
 ```bash
