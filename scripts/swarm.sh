@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# swarm — attach to (or create) the coord tmux session running Claude Code.
+#
+# Usage:
+#   swarm             # attach if 'coord' exists; otherwise create + auto-load /swarm-up
+#   swarm <name>      # use a different tmux session name (default: 'coord')
+#   swarm --new       # force a fresh session (rejects an existing 'coord')
+#   swarm --status    # one-line status of the session; don't attach
+#
+# Daily use: just `swarm`. From inside Claude, type `/exit` (or `Ctrl-b d` to
+# just detach) to leave the session running in the background; next `swarm`
+# attaches you back to the same session with full conversation history.
+
+set -euo pipefail
+
+SESSION="${SWARM_TMUX_SESSION:-coord}"
+MODE="attach"
+for arg in "$@"; do
+  case "$arg" in
+    --new)     MODE="new" ;;
+    --status)  MODE="status" ;;
+    --help|-h) sed -n '1,20p' "$0"; exit 0 ;;
+    *)         SESSION="$arg" ;;
+  esac
+done
+
+session_exists() { tmux has-session -t "$SESSION" 2>/dev/null; }
+
+case "$MODE" in
+  status)
+    if session_exists; then
+      echo "session '$SESSION' is running"
+      tmux list-windows -t "$SESSION" -F '  window #{window_index}: #{window_name}  [#{window_panes} pane(s)]' 2>/dev/null
+    else
+      echo "no session '$SESSION'"
+    fi
+    exit 0
+    ;;
+  new)
+    if session_exists; then
+      echo "session '$SESSION' already exists. Use plain 'swarm' to attach, or pick another name." >&2
+      exit 1
+    fi
+    ;;
+esac
+
+if ! command -v tmux >/dev/null 2>&1; then
+  echo "swarm: tmux not installed. Run init.sh (or apt install tmux) first." >&2
+  exit 1
+fi
+if ! command -v claude >/dev/null 2>&1; then
+  echo "swarm: claude not on PATH. Run init.sh (or source ~/.bash_profile) first." >&2
+  exit 1
+fi
+
+if session_exists; then
+  exec tmux attach -t "$SESSION"
+fi
+
+# Fresh session — create detached, start claude, auto-type /swarm-up so the
+# session-side skill loads memory + reports status without an extra keystroke.
+tmux new -d -s "$SESSION" "claude"
+# Give claude a moment to come up before the REPL is ready for input.
+sleep 1.5
+tmux send-keys -t "$SESSION" "/swarm-up" Enter
+exec tmux attach -t "$SESSION"

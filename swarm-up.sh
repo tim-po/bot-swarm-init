@@ -106,29 +106,18 @@ else
 fi
 
 # -------------------------------------------------------------------------
-# 7. Launch a detached tmux 'coord' session running `claude`
-# -------------------------------------------------------------------------
-if tmux has-session -t coord 2>/dev/null; then
-  log "tmux session 'coord' already exists"
-else
-  log "starting tmux session 'coord' with claude"
-  tmux new -d -s coord -- bash -lc "cd ~ && claude"
-fi
-
-# -------------------------------------------------------------------------
-# 8. Final instructions
+# 7. Final instructions — launch is one word
 # -------------------------------------------------------------------------
 cat <<EOF
 
 ==============================================================
-$LOG_PREFIX everything installed, worker running, session ready.
+$LOG_PREFIX everything installed, worker running.
 
-  Attach to your coord session:
-       tmux attach -t coord
+  Start the coord session with one word:
+       swarm
 
-  Once inside Claude, type:
-       /swarm-up
-
-  (idempotent — it'll just verify state, refresh memory, and report.)
+  That attaches to (or creates) a 'coord' tmux session running Claude
+  with /swarm-up auto-loaded. Detach with Ctrl-b d; re-attach later
+  with the same single command. Status: 'swarm --status'.
 ==============================================================
 EOF

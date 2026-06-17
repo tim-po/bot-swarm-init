@@ -14,13 +14,13 @@ curl -sL https://raw.githubusercontent.com/tim-po/bot-swarm-init/main/swarm-up.s
 - **sudo password** for `loginctl enable-linger` (so services survive logout)
 - **gh auth** to clone the private `claude-memory` repo
 
-…then clones memory, starts the worker daemon, and launches a detached `tmux` session named `coord` running Claude Code. The script ends by telling you to:
+…then clones memory and starts the worker daemon. To start (or attach to) your coord session, one word:
 
 ```bash
-tmux attach -t coord
-# inside Claude, type:
-/swarm-up
+swarm
 ```
+
+That opens a tmux session named `coord` running Claude Code with `/swarm-up` auto-loaded. Detach with `Ctrl-b d`; re-attach later with the same single command. Status check: `swarm --status`. Force a fresh session: `swarm --new`.
 
 `/swarm-up` is the in-session skill (installed by init.sh) that verifies state, refreshes memory, and loads project context.
 
