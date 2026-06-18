@@ -53,8 +53,18 @@ if ! command -v claude >/dev/null 2>&1; then
   exit 1
 fi
 
+# Inside an existing tmux client → use switch-client so we don't nest.
+# Outside tmux → attach normally.
+attach_cmd() {
+  if [ -n "${TMUX:-}" ]; then
+    exec tmux switch-client -t "$SESSION"
+  else
+    exec tmux attach -t "$SESSION"
+  fi
+}
+
 if session_exists; then
-  exec tmux attach -t "$SESSION"
+  attach_cmd
 fi
 
 # Fresh session — create detached, start claude, auto-type /swarm-up so the
@@ -63,4 +73,4 @@ tmux new -d -s "$SESSION" "claude"
 # Give claude a moment to come up before the REPL is ready for input.
 sleep 1.5
 tmux send-keys -t "$SESSION" "/swarm-up" Enter
-exec tmux attach -t "$SESSION"
+attach_cmd
