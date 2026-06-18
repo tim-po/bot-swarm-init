@@ -24,8 +24,6 @@ That opens a tmux session named `coord` running Claude Code with `/swarm-up` aut
 
 `/swarm-up` is the in-session skill (installed by init.sh) that verifies state, refreshes memory, and loads project context.
 
-## Lower-level entry points
-
 ## Adding a Telegram bot per project
 
 After `init.sh` is done, each project gets its own bot (one bot = one project; sharing tokens across projects races on `getUpdates`).
