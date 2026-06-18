@@ -189,14 +189,17 @@ else
 fi
 
 # -------------------------------------------------------------------------
-# 5a. CLI helpers (e.g. swarm-add-tg-bot)
+# 5a. CLI helpers (e.g. swarm, swarm-add-tg-bot)
 # -------------------------------------------------------------------------
+# Install to ~/.local/bin/ — the XDG-standard user binary location. Already
+# on PATH thanks to uv's env file (sourced in .bash_profile) AND Ubuntu's
+# default ~/.profile checks for it. Co-located with gh + uv for consistency.
 if [[ -d "$INIT_DIR/scripts" ]]; then
-  mkdir -p "$HOME/bin"
+  mkdir -p "$HOME/.local/bin"
   for helper in "$INIT_DIR/scripts"/*.sh; do
     [[ -e "$helper" ]] || continue
     name="$(basename "$helper" .sh)"
-    target="$HOME/bin/$name"
+    target="$HOME/.local/bin/$name"
     cp "$helper" "$target"
     chmod +x "$target"
     log "installed helper: $name → $target"

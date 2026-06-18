@@ -33,7 +33,7 @@ After `init.sh` is done, each project gets its own bot (one bot = one project; s
 ```bash
 # 1. Make a bot via @BotFather → /newbot → grab the token.
 # 2. Wire it to a registered project:
-~/bin/swarm-add-tg-bot <slug> <bot_token>
+~/.local/bin/swarm-add-tg-bot <slug> <bot_token>
 
 # Optional 3rd arg: a specific coord SID to route to.
 # If omitted, the helper picks the most-recently-active coord in the slug.
