@@ -67,10 +67,16 @@ if session_exists; then
   attach_cmd
 fi
 
-# Fresh session — create detached, start claude, auto-type /swarm-up so the
-# session-side skill loads memory + reports status without an extra keystroke.
-tmux new -d -s "$SESSION" "claude"
+# Fresh session — create detached with a plain login shell as the session
+# command. If we ran `claude` directly as tmux's child and claude exited
+# (auth fail, TTY issue, anything), tmux would close the session
+# immediately. Wrapping in bash means the session persists even if claude
+# bails; user lands on a shell prompt instead of a dead session.
+tmux new -d -s "$SESSION" "bash -l"
+# Let the shell come up before sending keys.
+sleep 0.4
+tmux send-keys -t "$SESSION" "claude" Enter
 # Give claude a moment to come up before the REPL is ready for input.
-sleep 1.5
+sleep 1.8
 tmux send-keys -t "$SESSION" "/swarm-up" Enter
 attach_cmd
