@@ -106,14 +106,14 @@ TG_PROXY_VIA_XRAY=1         # install the proxy wrapper (needs xray-vpn containe
 
 ## Updating
 
-`init.sh` is idempotent — re-running it skips existing installs. To pull a newer worker:
+`init.sh` is idempotent — re-running it skips existing installs. To update an
+existing swarm to a newer worker, pull this repo and run the update script
+(it snapshots, rsyncs the new worker over the install **without touching
+`data/` or `config/`**, reinstalls deps, restarts, health-checks, and
+auto-rolls-back on failure):
 
 ```bash
-cd bot-swarm-init && git pull
-# then on the target:
-rsync -aH bot-swarm-init/vendor/bot-swarm/ ~/bot-swarm/    # or re-extract
-( cd ~/bot-swarm/worker && uv pip install --python .venv/bin/python -e . )
-systemctl --user restart bot-swarm-worker.service
+cd bot-swarm-init && git pull && ./scripts/update.sh
 ```
 
 ## Layout
